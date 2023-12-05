@@ -1,5 +1,5 @@
 # leaflet-challenge
-This website uses JSON data from https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson to fetch earthquake data from the past week and plot it on a global map.
+This website fetches JSON data from https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson to plot all earthquake types from the past week.
 
 ![Example Image](Capture.PNG)
 Link to site.  https://mlutfor.github.io/leaflet-challenge/
