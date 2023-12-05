@@ -26,7 +26,7 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   // Fetch earthquake data from the provided URL
-  fetch('https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/significant_week.geojson')
+  fetch('https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson')
     .then(response => response.json())
     .then(data => {
 
@@ -35,9 +35,10 @@ document.addEventListener('DOMContentLoaded', function () {
         const coordinates = feature.geometry.coordinates;
         const magnitude = feature.properties.mag;
         const depth = coordinates[2];
+        const time = new Date(feature.properties.time).toLocaleString(); // Convert timestamp to a readable date
 
         // Define marker options based on magnitude and depth
-        const maxMarkerSize = 30; // Set your maximum marker size here
+        const maxMarkerSize = 10; // Set your maximum marker size here
         const markerRadius = Math.min(Math.pow(2, magnitude) * 2, maxMarkerSize); // Limit marker size
 
         const markerOptions = {
@@ -52,30 +53,39 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Create a popup with earthquake information
         const popupContent = `
+          <b>Chosen Earthquake:</b><br>
           <b>Magnitude:</b> ${magnitude}<br>
           <b>Depth:</b> ${depth} km<br>
+          <b>Time:</b> ${time}<br>
           <b>Location:</b> ${feature.properties.place}<br>
           <a href="${feature.properties.url}" target="_blank">USGS Event Page</a>
+          <br><br>
         `;
 
         // Find nearby earthquakes within a 100 km radius for each marker
-        const nearbyEarthquakes = data.features.filter(e => {
-          const dist = map.distance(
-            [coordinates[1], coordinates[0]],
-            [e.geometry.coordinates[1], e.geometry.coordinates[0]]
-          );
-          return dist <= 100000 && e.properties.place !== feature.properties.place;
-        });
+        const nearbyEarthquakes = data.features
+          .map(e => ({
+            feature: e,
+            distance: map.distance(
+              [coordinates[1], coordinates[0]],
+              [e.geometry.coordinates[1], e.geometry.coordinates[0]]
+            ),
+          }))
+          .filter(e => e.distance <= 50000 && e.feature.properties.place !== feature.properties.place)
+          .sort((a, b) => a.distance - b.distance)
+          .slice(0, 3); // Display only the closest 3 earthquakes
 
         // Display nearby earthquakes information in the popup
         if (nearbyEarthquakes.length > 0) {
           const nearbyQuakesContent = nearbyEarthquakes.map(quake => {
+            const quakeTime = new Date(quake.feature.properties.time).toLocaleString(); // Convert nearby earthquake timestamp to a readable date
             return `
               <b>Nearby Earthquake:</b><br>
-              <b>Magnitude:</b> ${quake.properties.mag}<br>
-              <b>Depth:</b> ${quake.geometry.coordinates[2]} km<br>
-              <b>Location:</b> ${quake.properties.place}<br>
-              <a href="${quake.properties.url}" target="_blank">USGS Event Page</a><br><br>
+              <b>Magnitude:</b> ${quake.feature.properties.mag}<br>
+              <b>Depth:</b> ${quake.feature.geometry.coordinates[2]} km<br>
+              <b>Time:</b> ${quakeTime}<br>
+              <b>Location:</b> ${quake.feature.properties.place}<br>
+              <a href="${quake.feature.properties.url}" target="_blank">USGS Event Page</a><br><br>
             `;
           }).join('');
 
