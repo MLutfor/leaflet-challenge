@@ -1,4 +1,4 @@
-# leaflet-challenge
+# leaflet-Part-1-challenge
 This website fetches JSON data from https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson to plot all earthquake types from the past week.
 
 ![Example Image](Capture.PNG)
